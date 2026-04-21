@@ -14,6 +14,11 @@ app.get('/', (req, res) => {
   res.send('WerkFlow Server is Running!');
 });
 
+// Testing Handshake
+app.get('/api/test', (req, res) => {
+  res.json({ message: "Handshake successful" });
+});
+
 app.listen(PORT, () => {
   console.log(`Server is purring on http://localhost:${PORT}`);
 });
