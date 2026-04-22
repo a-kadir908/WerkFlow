@@ -19,21 +19,45 @@ app.get('/api/test', (req, res) => {
   res.json({ message: "Handshake successful" });
 });
 
-// The Adzuna Pipeline
+// Adzuna Pipeline
+// Cache to stop spamming adzuna
+let jobCache = {}; 
+const CACHE_LIFESPAN = 5 * 60 * 1000; 
+
 app.get('/api/jobs', async (req, res) => {
   try {
-    // Get keys from .env
+    // Read frontend requests or use default values if left blank
+    const searchWhat = req.query.what || 'developer';
+    const searchWhere = req.query.where || 'london';
+    
+    // Create a unique label for this specific search
+    const cacheKey = `${searchWhat}-${searchWhere}`.toLowerCase();
+    const now = Date.now();
+
+    // Check cache for this specific search
+    const cachedFolder = jobCache[cacheKey];
+    if (cachedFolder && (now - cachedFolder.timestamp < CACHE_LIFESPAN)) {
+      console.log(`Serving [${cacheKey}] instantly from Cache!`);
+      return res.json(cachedFolder.data); 
+    }
+
+    // 5. If not found, go to Adzuna with the dynamic variables
+    console.log(`Fetching [${cacheKey}] from Adzuna...`);
     const appId = process.env.ADZUNA_APP_ID;
     const appKey = process.env.ADZUNA_API_KEY;
+    
+    // Notice the ${searchWhat} and ${searchWhere} injected into the URL
+    const adzunaUrl = `https://api.adzuna.com/v1/api/jobs/gb/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=5&what=${searchWhat}&where=${searchWhere}`;
 
-    // Build URL (Hardcoded to "Software" for now)
-    const adzunaUrl = `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=5&what=software`;
-
-    // Backend fetches data
     const response = await fetch(adzunaUrl);
     const data = await response.json();
 
-    // Send data back
+    // 6. Save a new folder in the filing cabinet just for this search
+    jobCache[cacheKey] = {
+      timestamp: now,
+      data: data
+    };
+
     res.json(data);
 
   } catch (error) {
