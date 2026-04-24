@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 3000;
 // MIDDLEWARE
 // ==========================================
 app.use(cors());
-app.use(express.json()); 
+app.use(express.json());
 
 
 // ==========================================
@@ -45,10 +45,10 @@ app.get('/api/test', (req, res) => {
 // POST: Save a new job 
 app.post('/api/saved-jobs', async (req, res) => {
   try {
-    const jobData = req.body; 
-    const newJob = new Job(jobData); 
-    await newJob.save(); 
-    
+    const jobData = req.body;
+    const newJob = new Job(jobData);
+    await newJob.save();
+
     res.status(201).json({ message: "Job saved to Vault!", job: newJob });
   } catch (error) {
     if (error.code === 11000) {
@@ -62,7 +62,7 @@ app.post('/api/saved-jobs', async (req, res) => {
 // GET: Retrieve all saved jobs
 app.get('/api/saved-jobs', async (req, res) => {
   try {
-    const jobs = await Job.find().sort({ dateSaved: -1 }); 
+    const jobs = await Job.find().sort({ dateSaved: -1 });
     res.status(200).json(jobs);
   } catch (error) {
     console.error(error);
@@ -71,26 +71,26 @@ app.get('/api/saved-jobs', async (req, res) => {
 });
 
 // --- Adzuna API Pipeline (Live Search) ---
-let jobCache = {}; 
-const CACHE_LIFESPAN = 5 * 60 * 1000; 
+let jobCache = {};
+const CACHE_LIFESPAN = 5 * 60 * 1000;
 
 app.get('/api/jobs', async (req, res) => {
   try {
     const searchWhat = req.query.what || 'developer';
     const searchWhere = req.query.where || 'london';
-    
+
     const cacheKey = `${searchWhat}-${searchWhere}`.toLowerCase();
     const now = Date.now();
 
     if (jobCache[cacheKey] && (now - jobCache[cacheKey].timestamp < CACHE_LIFESPAN)) {
       console.log(`Serving [${cacheKey}] instantly from Cache!`);
-      return res.json(jobCache[cacheKey].data); 
+      return res.json(jobCache[cacheKey].data);
     }
 
     console.log(`Fetching [${cacheKey}] from Adzuna...`);
     const appId = process.env.ADZUNA_APP_ID;
     const appKey = process.env.ADZUNA_API_KEY;
-    
+
     const adzunaUrl = `https://api.adzuna.com/v1/api/jobs/gb/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=5&what=${searchWhat}&where=${searchWhere}`;
 
     const response = await fetch(adzunaUrl);
