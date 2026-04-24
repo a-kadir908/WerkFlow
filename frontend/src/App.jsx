@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
-  const [jobs, setJobs] = useState([]);
+  // two lists
+  const [searchResults, setSearchResults] = useState([]);
+  const [savedJobs, setSavedJobs] = useState([]);
+  
   const [loading, setLoading] = useState(false);
-
   const [jobTitle, setJobTitle] = useState('');
   const [location, setLocation] = useState('');
 
@@ -13,13 +15,63 @@ function App() {
     try {
       const response = await fetch(`http://localhost:3000/api/jobs?what=${jobTitle}&where=${location}`);
       const data = await response.json();
+      setSearchResults(data.results || []);
 
-      setJobs(data.results || []);
     } catch (error) {
       console.error("Failed to fetch jobs:", error);
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    const loadVault = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/api/saved-jobs`);
+        const data = await response.json();
+        setSavedJobs(data);
+      } catch (error) {
+        console.error("Failed to load vault jobs:", error);
+      }
+    };
+    loadVault();
+  }, []);
+
+
+  const handleSaveJob = async (job) => {
+    try {
+      // save jobs
+      const jobData = {
+        adzunaId: String(job.id),
+        title: job.title,
+        company: job.company.display_name,
+        location: job.location.display_name,
+        description: job.description,
+        redirect_url: job.redirect_url
+      };
+
+      // send jobs to the backend 
+      const response = await fetch('http://localhost:3000/api/saved-jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(jobData)
+      });
+
+      const data = await response.json();
+
+      // give feedback
+      if (response.ok) {
+        alert("ok " + data.message);
+        setSavedJobs(prevJobs => [data.job, ...prevJobs]);
+      } else {
+        alert("error " + data.message);
+      }
+      
+    } catch (error) {
+      console.error("Error saving job:", error);
+      alert("error " + error);
+    }
+  };
+  
 
   return (
     <div className="app-container">
@@ -46,18 +98,40 @@ function App() {
         </div>
       </header>
 
+      {/* NEW SECTION: Live Search Results */}
+      {searchResults.length > 0 && (
+        <section className="search-section">
+          <h2>Live Adzuna Results ({searchResults.length})</h2>
+          <div className="job-list search-list">
+            {searchResults.map((job) => (
+              <div key={job.id} className="job-card">
+                <h3>{job.title}</h3>
+                <p>{job.company.display_name} - {job.location.display_name}</p>
+                <button onClick={() => handleSaveJob(job)} className="save-btn">
+                  Save to Wishlist
+                </button>
+              </div>
+            ))}
+          </div>
+          <hr />
+        </section>
+      )}
+
+
+
       {/* The Kanban Board Layout */}
       <main className="kanban-board">
 
         {/* Column 1: Wishlist */}
         <div className="kanban-column">
-          <h2>Wishlist ({jobs.length})</h2>
+          <h2>Wishlist ({savedJobs.length})</h2>
           <div className="job-list">
-            {jobs.map((job) => (
-              <div key={job.id} className="job-card">
+            
+            {savedJobs.filter((job) => job.status === "wishlist").map((job) => (
+              <div key={job.id} className="job-card saved-card">
                 <h3>{job.title}</h3>
-                <p className="company">{job.company.display_name}</p>
-                <p className="location">{job.location.display_name}</p>
+                <p>{job.company} - {job.location}</p>
+                
               </div>
             ))}
           </div>
