@@ -4,7 +4,7 @@ import './App.css';
 function App() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
-  
+
   // 1. New Memory Boxes for the Search Form
   const [jobTitle, setJobTitle] = useState('');
   const [location, setLocation] = useState('');
@@ -15,7 +15,7 @@ function App() {
       // 2. Attach the search terms to the URL query string
       const response = await fetch(`http://localhost:3000/api/jobs?what=${jobTitle}&where=${location}`);
       const data = await response.json();
-      
+
       setJobs(data.results || []);
     } catch (error) {
       console.error("Failed to fetch jobs:", error);
@@ -27,18 +27,18 @@ function App() {
     <div className="app-container">
       <header className="header">
         <h1>WerkFlow</h1>
-        
+
         {/* 3. The New Search Form */}
         <div className="search-bar">
-          <input 
-            type="text" 
-            placeholder="Job Title (e.g. React)" 
+          <input
+            type="text"
+            placeholder="Job Title (e.g. React)"
             value={jobTitle}
             onChange={(e) => setJobTitle(e.target.value)}
           />
-          <input 
-            type="text" 
-            placeholder="Location (e.g. New York)" 
+          <input
+            type="text"
+            placeholder="Location (e.g. New York)"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />
@@ -50,7 +50,7 @@ function App() {
 
       {/* The Kanban Board Layout */}
       <main className="kanban-board">
-        
+
         {/* Column 1: Wishlist */}
         <div className="kanban-column">
           <h2>Wishlist ({jobs.length})</h2>
