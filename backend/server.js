@@ -70,6 +70,21 @@ app.get('/api/saved-jobs', async (req, res) => {
   }
 });
 
+// DELETE: Remove a job
+app.delete('/api/saved-jobs/:id', async (req, res) => {
+  try {
+    const deletedJob = await Job.findByIdAndDelete(req.params.id);
+
+    if (!deletedJob) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+    res.status(200).json({ message: "Job deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error deleting job" });
+  }
+});
+
 // --- Adzuna API Pipeline (Live Search) ---
 let jobCache = {};
 const CACHE_LIFESPAN = 5 * 60 * 1000;

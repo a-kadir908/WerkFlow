@@ -5,7 +5,7 @@ function App() {
   // two lists
   const [searchResults, setSearchResults] = useState([]);
   const [savedJobs, setSavedJobs] = useState([]);
-  
+
   const [loading, setLoading] = useState(false);
   const [jobTitle, setJobTitle] = useState('');
   const [location, setLocation] = useState('');
@@ -37,6 +37,25 @@ function App() {
   }, []);
 
 
+  const handleDeleteJob = async (id) => {
+    try {
+      // 1. Send the Delete signal to the backend
+      const response = await fetch(`http://localhost:3000/api/saved-jobs/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // 2. Instantly remove it from the screen by filtering it out of the savedJobs array
+        setSavedJobs(prevJobs => prevJobs.filter(job => job._id !== id));
+      } else {
+        alert("⚠️ Failed to delete job.");
+      }
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      alert("❌ Server connection error.");
+    }
+  };
+
   const handleSaveJob = async (job) => {
     try {
       // save jobs
@@ -65,13 +84,13 @@ function App() {
       } else {
         alert("error " + data.message);
       }
-      
+
     } catch (error) {
       console.error("Error saving job:", error);
       alert("error " + error);
     }
   };
-  
+
 
   return (
     <div className="app-container">
@@ -126,12 +145,27 @@ function App() {
         <div className="kanban-column">
           <h2>Wishlist ({savedJobs.length})</h2>
           <div className="job-list">
-            
+
             {savedJobs.filter((job) => job.status === "wishlist").map((job) => (
               <div key={job.id} className="job-card saved-card">
                 <h3>{job.title}</h3>
                 <p>{job.company} - {job.location}</p>
-                
+
+                <button
+                  onClick={() => window.open(job.redirect_url, '_blank')}
+                  className="apply-btn"
+                >
+                  Apply Now
+                </button>
+
+                <button
+                  onClick={() => handleDeleteJob(job._id)}
+                  className="delete-btn"
+                >
+                  Delete
+                </button>
+
+
               </div>
             ))}
           </div>
