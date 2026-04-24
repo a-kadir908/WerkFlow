@@ -5,14 +5,12 @@ function App() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 1. New Memory Boxes for the Search Form
   const [jobTitle, setJobTitle] = useState('');
   const [location, setLocation] = useState('');
 
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      // 2. Attach the search terms to the URL query string
       const response = await fetch(`http://localhost:3000/api/jobs?what=${jobTitle}&where=${location}`);
       const data = await response.json();
 
@@ -28,7 +26,7 @@ function App() {
       <header className="header">
         <h1>WerkFlow</h1>
 
-        {/* 3. The New Search Form */}
+        {/* Search Form */}
         <div className="search-bar">
           <input
             type="text"
@@ -55,7 +53,6 @@ function App() {
         <div className="kanban-column">
           <h2>Wishlist ({jobs.length})</h2>
           <div className="job-list">
-            {/* We map through the memory and create a card for every job */}
             {jobs.map((job) => (
               <div key={job.id} className="job-card">
                 <h3>{job.title}</h3>
