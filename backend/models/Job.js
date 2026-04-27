@@ -11,6 +11,9 @@ const JobSchema = new mongoose.Schema({
   location: String,
   description: String,
   redirect_url: String,
+  salary_min: Number,
+  salary_max: Number,
+  currency: String,
   status: { 
     type: String, 
     default: 'wishlist'
