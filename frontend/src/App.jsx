@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import './App.css';
 
 function App() {
@@ -9,13 +10,27 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [jobTitle, setJobTitle] = useState('');
   const [location, setLocation] = useState('');
+  const [region, setRegion] = useState('gb');
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const getCurrencySymbol = (reg) => {
+    switch(reg) {
+      case 'us': return '$';
+      case 'gb': return '£';
+      case 'de': return '€';
+      default: return '£';
+    }
+  };
 
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/api/jobs?what=${jobTitle}&where=${location}`);
+      const response = await fetch(`http://localhost:3000/api/jobs?what=${jobTitle}&where=${location}&region=${region}`);
       const data = await response.json();
       setSearchResults(data.results || []);
+      setCurrentPage(1);
 
     } catch (error) {
       console.error("Failed to fetch jobs:", error);
@@ -30,7 +45,7 @@ function App() {
         const data = await response.json();
         setSavedJobs(data);
       } catch (error) {
-        console.error("Failed to load vault jobs:", error);
+        console.error("Failed to load jobs:", error);
       }
     };
     loadVault();
@@ -39,20 +54,44 @@ function App() {
 
   const handleDeleteJob = async (id) => {
     try {
-      // 1. Send the Delete signal to the backend
       const response = await fetch(`http://localhost:3000/api/saved-jobs/${id}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
-        // 2. Instantly remove it from the screen by filtering it out of the savedJobs array
         setSavedJobs(prevJobs => prevJobs.filter(job => job._id !== id));
       } else {
-        alert("⚠️ Failed to delete job.");
+        alert("Failed to delete job.");
       }
     } catch (error) {
       console.error("Error deleting job:", error);
-      alert("❌ Server connection error.");
+      alert("Server connection error.");
+    }
+  };
+
+  const onDragEnd = async (result) => {
+    if (!result.destination) return; 
+
+    const { source, destination, draggableId } = result;
+
+    if (source.droppableId === destination.droppableId) return; 
+
+    const newStatus = destination.droppableId;
+    setSavedJobs(prevJobs => 
+      prevJobs.map(job => 
+        job._id === draggableId ? { ...job, status: newStatus } : job
+      )
+    );
+
+    try {
+      await fetch(`http://localhost:3000/api/saved-jobs/${draggableId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+    } catch (error) {
+      console.error("Failed to update database:", error);
+      alert("Failed to save move to database.");
     }
   };
 
@@ -65,7 +104,10 @@ function App() {
         company: job.company.display_name,
         location: job.location.display_name,
         description: job.description,
-        redirect_url: job.redirect_url
+        redirect_url: job.redirect_url,
+        salary_min: job.salary_min,
+        salary_max: job.salary_max,
+        currency: getCurrencySymbol(region)
       };
 
       // send jobs to the backend 
@@ -79,15 +121,15 @@ function App() {
 
       // give feedback
       if (response.ok) {
-        alert("ok " + data.message);
+        alert(data.message);
         setSavedJobs(prevJobs => [data.job, ...prevJobs]);
       } else {
-        alert("error " + data.message);
+        alert("Error " + data.message);
       }
 
     } catch (error) {
       console.error("Error saving job:", error);
-      alert("error " + error);
+      alert("Error " + error);
     }
   };
 
@@ -107,10 +149,15 @@ function App() {
           />
           <input
             type="text"
-            placeholder="Location (e.g. New York)"
+            placeholder="Location (e.g. London)"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />
+          <select value={region} onChange={(e) => setRegion(e.target.value)} style={{ padding: '12px', borderRadius: '8px', background: '#1e1e1e', color: 'white', border: '1px solid #444', fontSize: '16px' }}>
+            <option value="us">USA</option>
+            <option value="gb">UK</option>
+            <option value="de">Germany</option>
+          </select>
           <button className="search-btn" onClick={fetchJobs} disabled={loading}>
             {loading ? "Searching..." : "Find Jobs"}
           </button>
@@ -120,18 +167,39 @@ function App() {
       {/* NEW SECTION: Live Search Results */}
       {searchResults.length > 0 && (
         <section className="search-section">
-          <h2>Live Adzuna Results ({searchResults.length})</h2>
+          <h2>Live Adzuna Results ({searchResults.length} found)</h2>
           <div className="job-list search-list">
-            {searchResults.map((job) => (
-              <div key={job.id} className="job-card">
+            {searchResults.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((job) => (
+              <div key={job.id} className="job-card" onClick={() => setSelectedJob(job)}>
                 <h3>{job.title}</h3>
                 <p>{job.company.display_name} - {job.location.display_name}</p>
-                <button onClick={() => handleSaveJob(job)} className="save-btn">
+                <p className="salary">
+                  Salary: {job.salary_max || job.salary_min ? `${getCurrencySymbol(region)}${job.salary_max || job.salary_min}` : 'Not provided'}
+                </p>
+                <button onClick={(e) => { e.stopPropagation(); handleSaveJob(job); }} className="save-btn">
                   Save to Wishlist
                 </button>
               </div>
             ))}
           </div>
+
+          {searchResults.length > itemsPerPage && (
+            <div className="pagination">
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              <span>Page {currentPage} of {Math.ceil(searchResults.length / itemsPerPage)}</span>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(searchResults.length / itemsPerPage)))} 
+                disabled={currentPage === Math.ceil(searchResults.length / itemsPerPage)}
+              >
+                Next
+              </button>
+            </div>
+          )}
           <hr />
         </section>
       )}
@@ -140,50 +208,81 @@ function App() {
 
       {/* The Kanban Board Layout */}
       <main className="kanban-board">
+        <DragDropContext onDragEnd={onDragEnd}>
+          {['wishlist', 'applied', 'interview'].map((status) => {
+            const columnJobs = savedJobs.filter((job) => job.status === status);
+            const titles = {
+              wishlist: 'Wishlist',
+              applied: 'Applied',
+              interview: 'Interview'
+            };
 
-        {/* Column 1: Wishlist */}
-        <div className="kanban-column">
-          <h2>Wishlist ({savedJobs.length})</h2>
-          <div className="job-list">
+            return (
+              <div key={status} className="kanban-column">
+                <h2>{titles[status]} ({columnJobs.length})</h2>
+                <Droppable droppableId={status}>
+                  {(provided) => (
+                    <div 
+                      className="job-list"
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                    >
+                      {columnJobs.map((job, index) => (
+                        <Draggable key={job._id} draggableId={String(job._id)} index={index}>
+                          {(provided) => (
+                            <div 
+                              className="job-card saved-card"
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              onClick={() => setSelectedJob(job)}
+                            >
+                              <h3>{job.title}</h3>
+                              <p>{job.company} - {job.location}</p>
+                              <p className="salary">
+                                Salary: {job.salary_max || job.salary_min ? `${job.currency || getCurrencySymbol('gb')}${job.salary_max || job.salary_min}` : 'Not provided'}
+                              </p>
 
-            {savedJobs.filter((job) => job.status === "wishlist").map((job) => (
-              <div key={job.id} className="job-card saved-card">
-                <h3>{job.title}</h3>
-                <p>{job.company} - {job.location}</p>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); window.open(job.redirect_url, '_blank'); }}
+                                className="apply-btn"
+                              >
+                                Apply Now
+                              </button>
 
-                <button
-                  onClick={() => window.open(job.redirect_url, '_blank')}
-                  className="apply-btn"
-                >
-                  Apply Now
-                </button>
-
-                <button
-                  onClick={() => handleDeleteJob(job._id)}
-                  className="delete-btn"
-                >
-                  Delete
-                </button>
-
-
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleDeleteJob(job._id); }}
+                                className="delete-btn"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
               </div>
-            ))}
+            );
+          })}
+        </DragDropContext>
+      </main>
+
+      {/* Modal */}
+      {selectedJob && (
+        <div className="modal-overlay" onClick={() => setSelectedJob(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close-btn" onClick={() => setSelectedJob(null)}>&times;</button>
+            <h2>{selectedJob.title}</h2>
+            <p><strong>Company:</strong> {selectedJob.company?.display_name || selectedJob.company}</p>
+            <p><strong>Location:</strong> {selectedJob.location?.display_name || selectedJob.location}</p>
+            <hr style={{ borderColor: '#444', margin: '15px 0' }} />
+            <p className="modal-description">{selectedJob.description}</p>
           </div>
         </div>
-
-        {/* Column 2: Applied (Empty for now) */}
-        <div className="kanban-column">
-          <h2>Applied (0)</h2>
-          <div className="job-list"></div>
-        </div>
-
-        {/* Column 3: Interview (Empty for now) */}
-        <div className="kanban-column">
-          <h2>Interview (0)</h2>
-          <div className="job-list"></div>
-        </div>
-
-      </main>
+      )}
     </div>
   );
 }

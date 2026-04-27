@@ -49,13 +49,13 @@ app.post('/api/saved-jobs', async (req, res) => {
     const newJob = new Job(jobData);
     await newJob.save();
 
-    res.status(201).json({ message: "Job saved to Vault!", job: newJob });
+    res.status(201).json({ message: "Job saved!", job: newJob });
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(400).json({ message: "Job is already in your wishlist!" });
+      return res.status(400).json({ message: "Job already saved" });
     }
     console.error(error);
-    res.status(500).json({ message: "Error saving job to database" });
+    res.status(500).json({ message: "Error saving job" });
   }
 });
 
@@ -132,7 +132,7 @@ app.get('/api/jobs', async (req, res) => {
     const appId = process.env.ADZUNA_APP_ID;
     const appKey = process.env.ADZUNA_API_KEY;
 
-    let adzunaUrl = `https://api.adzuna.com/v1/api/jobs/${searchRegion}/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=10`;
+    let adzunaUrl = `https://api.adzuna.com/v1/api/jobs/${searchRegion}/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=50`;
     if (searchWhat) adzunaUrl += `&what=${encodeURIComponent(searchWhat)}`;
     if (searchWhere) adzunaUrl += `&where=${encodeURIComponent(searchWhere)}`;
 
