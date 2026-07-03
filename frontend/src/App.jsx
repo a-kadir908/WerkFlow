@@ -27,7 +27,7 @@ function App() {
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/api/jobs?what=${jobTitle}&where=${location}&region=${region}`);
+      const response = await fetch(`/api/jobs?what=${jobTitle}&where=${location}&region=${region}`);
       const data = await response.json();
       setSearchResults(data.results || []);
       setCurrentPage(1);
@@ -41,7 +41,7 @@ function App() {
   useEffect(() => {
     const loadVault = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/saved-jobs`);
+        const response = await fetch(`/api/saved-jobs`);
         const data = await response.json();
         setSavedJobs(data);
       } catch (error) {
@@ -54,7 +54,7 @@ function App() {
 
   const handleDeleteJob = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/saved-jobs/${id}`, {
+      const response = await fetch(`/api/saved-jobs/${id}`, {
         method: 'DELETE',
       });
 
@@ -84,7 +84,7 @@ function App() {
     );
 
     try {
-      await fetch(`http://localhost:3000/api/saved-jobs/${draggableId}`, {
+      await fetch(`/api/saved-jobs/${draggableId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -111,7 +111,7 @@ function App() {
       };
 
       // send jobs to the backend 
-      const response = await fetch('http://localhost:3000/api/saved-jobs', {
+      const response = await fetch('/api/saved-jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(jobData)

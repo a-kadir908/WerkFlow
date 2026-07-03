@@ -149,6 +149,11 @@ body {
   margin-bottom: 20px;
 }
 
+.kanban-column .job-list {
+  min-height: 50vh;
+  height: 100%;
+}
+
 /* ==========================================
    JOB CARDS & BUTTONS
 ========================================== */
