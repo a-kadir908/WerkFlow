@@ -73,25 +73,44 @@ function App() {
     if (!result.destination) return; 
 
     const { source, destination, draggableId } = result;
+    const previousJobs = [...savedJobs];
 
-    if (source.droppableId === destination.droppableId) return; 
+    if (source.droppableId === destination.droppableId) {
+      if (source.index === destination.index) return;
+      const columnJobs = savedJobs.filter(job => job.status === source.droppableId);
+      const otherJobs = savedJobs.filter(job => job.status !== source.droppableId);
+      
+      const [movedJob] = columnJobs.splice(source.index, 1);
+      columnJobs.splice(destination.index, 0, movedJob);
+      
+      setSavedJobs([...otherJobs, ...columnJobs]);
+      return; 
+    }
 
     const newStatus = destination.droppableId;
-    setSavedJobs(prevJobs => 
-      prevJobs.map(job => 
-        job._id === draggableId ? { ...job, status: newStatus } : job
-      )
-    );
+    const destColumnJobs = savedJobs.filter(job => job.status === newStatus);
+    const sourceColumnJobs = savedJobs.filter(job => job.status === source.droppableId);
+    const otherJobs = savedJobs.filter(job => job.status !== source.droppableId && job.status !== newStatus);
+    
+    const [movedJob] = sourceColumnJobs.splice(source.index, 1);
+    const updatedJob = { ...movedJob, status: newStatus };
+    destColumnJobs.splice(destination.index, 0, updatedJob);
+    
+    setSavedJobs([...otherJobs, ...sourceColumnJobs, ...destColumnJobs]);
 
     try {
-      await fetch(`/api/saved-jobs/${draggableId}`, {
+      const response = await fetch(`/api/saved-jobs/${draggableId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
+      if (!response.ok) {
+        throw new Error('Failed to update status on server');
+      }
     } catch (error) {
       console.error("Failed to update database:", error);
-      alert("Failed to save move to database.");
+      alert("Failed to save move to database. Reverting state.");
+      setSavedJobs(previousJobs);
     }
   };
 
@@ -279,7 +298,7 @@ function App() {
             <p><strong>Company:</strong> {selectedJob.company?.display_name || selectedJob.company}</p>
             <p><strong>Location:</strong> {selectedJob.location?.display_name || selectedJob.location}</p>
             <hr style={{ borderColor: '#444', margin: '15px 0' }} />
-            <p className="modal-description">{selectedJob.description}</p>
+            <p className="modal-description" dangerouslySetInnerHTML={{ __html: selectedJob.description }}></p>
           </div>
         </div>
       )}

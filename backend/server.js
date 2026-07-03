@@ -114,6 +114,16 @@ app.put('/api/saved-jobs/:id', async (req, res) => {
 let jobCache = {};
 const CACHE_LIFESPAN = 5 * 60 * 1000;
 
+// Cleanup interval to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  for (const key in jobCache) {
+    if (now - jobCache[key].timestamp >= CACHE_LIFESPAN) {
+      delete jobCache[key];
+    }
+  }
+}, 60 * 1000);
+
 app.get('/api/jobs', async (req, res) => {
   try {
     const searchWhat = req.query.what || '';
@@ -138,6 +148,10 @@ app.get('/api/jobs', async (req, res) => {
 
     const response = await fetch(adzunaUrl);
     const data = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
 
     jobCache[cacheKey] = {
       timestamp: now,
