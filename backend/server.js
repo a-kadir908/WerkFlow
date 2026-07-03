@@ -73,6 +73,9 @@ app.get('/api/saved-jobs', async (req, res) => {
 // DELETE: Remove a job
 app.delete('/api/saved-jobs/:id', async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid Job ID" });
+    }
     const deletedJob = await Job.findByIdAndDelete(req.params.id);
 
     if (!deletedJob) {
@@ -88,6 +91,9 @@ app.delete('/api/saved-jobs/:id', async (req, res) => {
 // PUT: Update a job's status (Drag and Drop)
 app.put('/api/saved-jobs/:id', async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid Job ID" });
+    }
     const { status } = req.body;
 
     // Find the exact job and update its status field
@@ -129,8 +135,9 @@ app.get('/api/jobs', async (req, res) => {
     const searchWhat = req.query.what || '';
     const searchWhere = req.query.where || '';
     const searchRegion = req.query.region || 'gb'; // default to gb
+    const page = req.query.page || '1';
 
-    const cacheKey = `${searchWhat}-${searchWhere}-${searchRegion}`.toLowerCase();
+    const cacheKey = `${searchWhat}-${searchWhere}-${searchRegion}-p${page}`.toLowerCase();
     const now = Date.now();
 
     if (jobCache[cacheKey] && (now - jobCache[cacheKey].timestamp < CACHE_LIFESPAN)) {
@@ -142,7 +149,7 @@ app.get('/api/jobs', async (req, res) => {
     const appId = process.env.ADZUNA_APP_ID;
     const appKey = process.env.ADZUNA_API_KEY;
 
-    let adzunaUrl = `https://api.adzuna.com/v1/api/jobs/${searchRegion}/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=50`;
+    let adzunaUrl = `https://api.adzuna.com/v1/api/jobs/${searchRegion}/search/${page}?app_id=${appId}&app_key=${appKey}&results_per_page=10`;
     if (searchWhat) adzunaUrl += `&what=${encodeURIComponent(searchWhat)}`;
     if (searchWhere) adzunaUrl += `&where=${encodeURIComponent(searchWhere)}`;
 

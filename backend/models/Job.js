@@ -16,7 +16,8 @@ const JobSchema = new mongoose.Schema({
   currency: String,
   status: { 
     type: String, 
-    default: 'wishlist'
+    default: 'wishlist',
+    index: true
   },
   dateSaved: { 
     type: Date, 
