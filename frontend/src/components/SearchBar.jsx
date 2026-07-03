@@ -15,7 +15,7 @@ const SearchBar = ({ jobTitle, setJobTitle, location, setLocation, region, setRe
         value={location}
         onChange={(e) => setLocation(e.target.value)}
       />
-      <select value={region} onChange={(e) => setRegion(e.target.value)} style={{ padding: '12px', borderRadius: '8px', background: 'var(--code-bg)', color: 'white', border: '1px solid var(--border)', fontSize: '16px' }}>
+      <select value={region} onChange={(e) => setRegion(e.target.value)} style={{ padding: '12px', borderRadius: '8px', background: 'var(--code-bg)', color: 'var(--text)', border: '1px solid var(--border)', fontSize: '16px' }}>
         <option value="us">USA</option>
         <option value="gb">UK</option>
         <option value="de">Germany</option>

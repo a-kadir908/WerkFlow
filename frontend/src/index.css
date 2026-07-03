@@ -30,6 +30,7 @@
   }
 }
 
+/* sets the theme to the devices theme */
 @media (prefers-color-scheme: dark) {
   :root {
     --text: #9ca3af;

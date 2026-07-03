@@ -173,9 +173,8 @@ app.get('/api/jobs', async (req, res) => {
 });
 
 
-// ==========================================
+
 // START SERVER
-// ==========================================
 app.listen(PORT, () => {
   console.log(`Server is purring on http://localhost:${PORT}`);
 });
