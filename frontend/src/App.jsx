@@ -2,6 +2,58 @@ import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import './App.css';
 
+const formatSalary = (min, max, currency) => {
+  if (min && max && min !== max) {
+    return `${currency}${min} - ${currency}${max}`;
+  } else if (min || max) {
+    return `${currency}${min || max}`;
+  }
+  return 'Not provided';
+};
+
+const JobCard = React.forwardRef(({ job, mode, currency, onClick, onSave, onApply, onDelete, ...dragProps }, ref) => {
+  const company = job.company?.display_name || job.company;
+  const location = job.location?.display_name || job.location;
+  
+  return (
+    <div 
+      className={`job-card ${mode === 'kanban' ? 'saved-card' : ''}`}
+      ref={ref}
+      onClick={onClick}
+      {...dragProps}
+    >
+      <h3>{job.title}</h3>
+      <p>{company} - {location}</p>
+      <p className="salary">
+        Salary: {formatSalary(job.salary_min, job.salary_max, currency)}
+      </p>
+
+      {mode === 'search' && (
+        <button onClick={(e) => { e.stopPropagation(); onSave(job); }} className="save-btn">
+          Save to Wishlist
+        </button>
+      )}
+
+      {mode === 'kanban' && (
+        <>
+          <button
+            onClick={(e) => { e.stopPropagation(); onApply(job); }}
+            className="apply-btn"
+          >
+            Apply Now
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(job._id); }}
+            className="delete-btn"
+          >
+            Delete
+          </button>
+        </>
+      )}
+    </div>
+  );
+});
+
 function App() {
   // two lists
   const [searchResults, setSearchResults] = useState([]);
@@ -189,16 +241,14 @@ function App() {
           <h2>Live Adzuna Results ({searchResults.length} found)</h2>
           <div className="job-list search-list">
             {searchResults.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((job) => (
-              <div key={job.id} className="job-card" onClick={() => setSelectedJob(job)}>
-                <h3>{job.title}</h3>
-                <p>{job.company.display_name} - {job.location.display_name}</p>
-                <p className="salary">
-                  Salary: {job.salary_max || job.salary_min ? `${getCurrencySymbol(region)}${job.salary_max || job.salary_min}` : 'Not provided'}
-                </p>
-                <button onClick={(e) => { e.stopPropagation(); handleSaveJob(job); }} className="save-btn">
-                  Save to Wishlist
-                </button>
-              </div>
+              <JobCard
+                key={job.id}
+                job={job}
+                mode="search"
+                currency={getCurrencySymbol(region)}
+                onClick={() => setSelectedJob(job)}
+                onSave={handleSaveJob}
+              />
             ))}
           </div>
 
@@ -249,33 +299,17 @@ function App() {
                       {columnJobs.map((job, index) => (
                         <Draggable key={job._id} draggableId={String(job._id)} index={index}>
                           {(provided) => (
-                            <div 
-                              className="job-card saved-card"
+                            <JobCard
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
+                              job={job}
+                              mode="kanban"
+                              currency={job.currency || getCurrencySymbol('gb')}
                               onClick={() => setSelectedJob(job)}
-                            >
-                              <h3>{job.title}</h3>
-                              <p>{job.company} - {job.location}</p>
-                              <p className="salary">
-                                Salary: {job.salary_max || job.salary_min ? `${job.currency || getCurrencySymbol('gb')}${job.salary_max || job.salary_min}` : 'Not provided'}
-                              </p>
-
-                              <button
-                                onClick={(e) => { e.stopPropagation(); window.open(job.redirect_url, '_blank'); }}
-                                className="apply-btn"
-                              >
-                                Apply Now
-                              </button>
-
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleDeleteJob(job._id); }}
-                                className="delete-btn"
-                              >
-                                Delete
-                              </button>
-                            </div>
+                              onApply={(j) => window.open(j.redirect_url, '_blank')}
+                              onDelete={handleDeleteJob}
+                            />
                           )}
                         </Draggable>
                       ))}

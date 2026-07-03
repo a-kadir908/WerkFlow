@@ -8,8 +8,8 @@
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  background-color: #121212;
-  color: #ffffff;
+  background-color: var(--bg);
+  color: var(--text-h);
   overflow-x: hidden;
   max-width: 100vw;
 }
@@ -42,20 +42,20 @@ body {
 .search-bar input {
   padding: 12px 15px;
   border-radius: 8px;
-  border: 1px solid #444;
-  background-color: #1e1e1e;
+  border: 1px solid var(--border);
+  background-color: var(--code-bg);
   color: white;
   width: 250px;
   font-size: 16px;
 }
 
 .search-bar input::placeholder {
-  color: #888;
+  color: var(--text);
 }
 
 .search-bar input:focus {
   outline: none;
-  border-color: #646cff;
+  border-color: var(--accent);
 }
 
 .search-btn {
@@ -63,7 +63,7 @@ body {
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  background-color: #646cff;
+  background-color: var(--accent);
   color: white;
   border: none;
   border-radius: 8px;
@@ -71,12 +71,12 @@ body {
 }
 
 .search-btn:hover {
-  background-color: #535bf2;
+  background-color: var(--accent);
 }
 
 .search-btn:disabled {
-  background-color: #444;
-  color: #888;
+  background-color: var(--border);
+  color: var(--text);
   cursor: not-allowed;
 }
 
@@ -84,16 +84,16 @@ body {
    LIVE SEARCH RESULTS (Horizontal Scroll)
 ========================================== */
 .search-section {
-  background-color: #1e1e1e;
+  background-color: var(--code-bg);
   padding: 25px;
   border-radius: 12px;
   margin-bottom: 40px;
-  border: 1px solid #333;
+  border: 1px solid var(--border);
 }
 
 .search-section h2 {
   margin-top: 0;
-  color: #a0a0a0;
+  color: var(--text);
   font-size: 18px;
   margin-bottom: 20px;
 }
@@ -109,11 +109,11 @@ body {
   height: 8px;
 }
 .search-list::-webkit-scrollbar-track {
-  background: #121212;
+  background: var(--bg);
   border-radius: 4px;
 }
 .search-list::-webkit-scrollbar-thumb {
-  background-color: #444;
+  background-color: var(--border);
   border-radius: 4px;
 }
 
@@ -133,18 +133,18 @@ body {
 }
 
 .kanban-column {
-  background-color: #1e1e1e;
+  background-color: var(--code-bg);
   border-radius: 12px;
   padding: 20px;
   min-height: 60vh;
-  border: 1px solid #333;
+  border: 1px solid var(--border);
 }
 
 .kanban-column h2 {
   margin-top: 0;
   font-size: 18px;
-  color: #a0a0a0;
-  border-bottom: 1px solid #333;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 10px;
   margin-bottom: 20px;
 }
@@ -158,8 +158,8 @@ body {
    JOB CARDS & BUTTONS
 ========================================== */
 .job-card {
-  background-color: #2a2a2a;
-  border: 1px solid #444;
+  background-color: var(--code-bg);
+  border: 1px solid var(--border);
   padding: 18px;
   border-radius: 8px;
   margin-bottom: 15px;
@@ -174,18 +174,18 @@ body {
 
 .job-card:hover {
   transform: translateY(-2px);
-  border-color: #646cff;
+  border-color: var(--accent);
 }
 
 .job-card h3 {
   margin: 0 0 10px 0;
   font-size: 16px;
-  color: #e0e0e0;
+  color: var(--text-h);
   line-height: 1.4;
 }
 
 .job-card p {
-  color: #888;
+  color: var(--text);
   font-size: 14px;
   margin: 0 0 15px 0;
 }
@@ -243,9 +243,9 @@ body {
 
 .pagination button {
   padding: 8px 16px;
-  background-color: #333;
+  background-color: var(--border);
   color: white;
-  border: 1px solid #555;
+  border: 1px solid var(--border);
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
@@ -253,20 +253,20 @@ body {
 }
 
 .pagination button:hover:not(:disabled) {
-  background-color: #535bf2;
-  border-color: #646cff;
+  background-color: var(--accent);
+  border-color: var(--accent);
 }
 
 .pagination button:disabled {
-  background-color: #222;
-  color: #666;
-  border-color: #333;
+  background-color: var(--code-bg);
+  color: var(--text);
+  border-color: var(--border);
   cursor: not-allowed;
 }
 
 .pagination span {
   font-size: 14px;
-  color: #aaa;
+  color: var(--text);
 }
 
 /* ==========================================
@@ -293,20 +293,20 @@ body {
 }
 
 .modal-content {
-  background-color: #1e1e1e;
+  background-color: var(--code-bg);
   padding: 30px;
   border-radius: 12px;
   max-width: 600px;
   width: 100%;
   max-height: 80vh;
   overflow-y: auto;
-  border: 1px solid #444;
+  border: 1px solid var(--border);
   position: relative;
 }
 
 .modal-content h2 {
   margin-top: 0;
-  color: #fff;
+  color: var(--text-h);
 }
 
 .modal-close-btn {
@@ -315,7 +315,7 @@ body {
   right: 15px;
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--text-h);
   font-size: 24px;
   cursor: pointer;
 }
@@ -325,7 +325,7 @@ body {
 }
 
 .modal-description {
-  color: #ccc;
+  color: var(--text);
   line-height: 1.6;
 }
 
