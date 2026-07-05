@@ -5,12 +5,13 @@
 To run this application locally, you must have **Node.js** installed on your machine.
 
 ### !!! Important: Environment Variables (API Keys)
-To ensure the security of my credentials, the `.env` file included in the `backend` folder has empty values. 
+To ensure the security of my credentials, the `.env` file is not included in this repository.
 **Before running the application, you must populate these keys.** You may find the keys in the powerpoint presentation and in the PebblePad submission.
 
-1. Open the `.env` file located in the `backend` folder.
-2. You will find the required keys on the **Title Slide** of my PowerPoint presentation, as well as in the **PebblePad submission**.
-3. Copy those keys and paste them into the `.env` file so it looks like this:
+1. Locate the `.env.example` file inside the `backend` directory.
+2. Rename this file to exactly `.env` (removing the .example extension).
+3. Open your new `.env` file.
+4. Copy the required keys from the Title Slide of my PowerPoint presentation (or my PebblePad submission) and paste them in, so the file looks exactly like this:
    ```env
    ADZUNA_APP_ID=the_copied_app_id
    ADZUNA_API_KEY=the_copied_api_key
@@ -20,11 +21,13 @@ To ensure the security of my credentials, the `.env` file included in the `backe
 ## Setup instructions
 
 ### For Windows Users
+! Ensure the .env file is populated.
 1. Double-click the `start_windows.bat` file located in the root directory.
 2. Two command prompt windows will automatically open (one for the backend, one for the frontend).
 3. The frontend will launch (usually at `http://localhost:5173` - check the terminal output for the exact URL).
 
 ### For Mac/Linux Users
+! Ensure the .env file is populated.
 1. Open your terminal in the root directory.
 2. Run the start script by typing: `bash start_mac_linux.sh`
 3. The frontend will launch (usually at `http://localhost:5173` - check the terminal output for the exact URL).
